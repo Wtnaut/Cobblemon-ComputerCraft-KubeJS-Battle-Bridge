@@ -22,6 +22,25 @@ const Cobblemon = Java.loadClass('com.cobblemon.mod.common.Cobblemon')
 const BattleRegistry = Java.loadClass('com.cobblemon.mod.common.battles.BattleRegistry')
 const BattleContext = Java.loadClass('com.cobblemon.mod.common.api.battles.interpreter.BattleContext')
 const BattleContextType = Java.loadClass('com.cobblemon.mod.common.api.battles.interpreter.BattleContext$Type')
+const ActorType = Java.loadClass('com.cobblemon.mod.common.api.battles.model.actor.ActorType')
+
+// Helper Function for Counting Alive Pokemon
+function countAliveOnSide(battleSide) {
+  var alive = 0
+  battleSide.actors.forEach(actor => {
+    actor.pokemonList.forEach(battlePokemon => {
+      if (battlePokemon.effectedPokemon && battlePokemon.effectedPokemon.currentHealth > 0)
+        alive++
+    })
+  })
+  return alive
+}
+
+function getSideName(battleSide) {
+    var actor = battleSide.actors[0]
+    if (!actor) return "Unknown"
+    return actor.getName().getString()
+}
 
 // Every N ticks, we update jsons across the server (all those listed in the configs above)
 // Note that this doesn't catch the battles as they end! We'll actually have to do something else for that, probably.
@@ -117,7 +136,9 @@ ServerEvents.tick(event => {
             spikes: 0,
             toxic_spikes: 0,
             sticky_web: "false",
-            tailwind: "false"
+            tailwind: "false",
+            alive_count: 0,
+            name: ""
         }
         //SIDE 1 SCREENS
         contexts = side1ContextManager.get(BattleContextType.SCREEN)
@@ -162,7 +183,9 @@ ServerEvents.tick(event => {
             spikes: 0,
             toxic_spikes: 0,
             sticky_web: "false",
-            tailwind: "false"
+            tailwind: "false",
+            alive_count: 0,
+            name: ""
         }
         //SIDE 2 SCREENS
         contexts = side2ContextManager.get(BattleContextType.SCREEN)
@@ -198,12 +221,17 @@ ServerEvents.tick(event => {
             })
         }
 
+        // Now, we update what requires actors on each side (I did these in subroutines, sue me)
+        side1.alive_count = countAliveOnSide(battle.getSide1())
+        side2.alive_count = countAliveOnSide(battle.getSide2())
+        side1.name = getSideName(battle.getSide1())
+        side2.name = getSideName(battle.getSide2())
 
         // We now store the data into this object as we please. We will store the object in a larger map,
         // which will be converted into a regular JS object and then saved to JSON
         let battleData = {
             turn: String(battle.turn),
-            player: player.username.toString(),
+            source_player: player.username.toString(),
             weather: weather,
             terrain: terrain,
             room: room,
