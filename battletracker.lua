@@ -1,3 +1,6 @@
+-- CONSTANTS - CHANGE THESE TO POINT TO BATTLE DATA
+local BATTLE_PATH = "battledata.json"
+
 -- Helper Functions
 local function pullEventTimeout(timeout, filter)
   local timer = os.startTimer(timeout)
@@ -12,13 +15,24 @@ local function pullEventTimeout(timeout, filter)
   end
 end
 
+local function getBattleDataFromJSON(path)
+  local data_file = fs.open(path, "r")
+  if not data_file then 
+    return {} 
+  end
+  local raw_battle_data = data_file.readAll()
+  data_file.close()
+  return textutils.unserializeJSON(raw_battle_data) or {}
+end
+  
+
 -- Global Setup
 local mon = peripheral.find("monitor")
 assert(mon, "No monitor found! Attach an Advanced Monitor.")
 mon.setTextScale(1)
 local oldTerm = term.redirect(mon)
 
-local battles = {A = "Test1", B = "Test2", C = "Test3"}
+local battle_data = {}
 battle_id = ""
 swap_sides = false
 
@@ -26,7 +40,7 @@ swap_sides = false
 local ok, err = pcall(function()
 while true do
     -- Update JSON data
-    -- TODO
+    battle_data = getBattleDataFromJSON(BATTLE_PATH)
 
     -- Update the monitor screen
     local size_w, size_h = term.getSize()
@@ -66,7 +80,7 @@ while true do
         term.setBackgroundColour(colours.orange)
         end
         term.setCursorPos(5, index)
-        term.write(battles[k])
+        term.write(battles[k].side1.name + " VS " + battles[k].side2.name)
         index = index + 1
         if k == battle_id then
             term.setBackgroundColour(colours.black)
@@ -75,6 +89,8 @@ while true do
             break
         end
     end
+    -- INSERT YOUR PROCESSING HERE
+    --TODO
     
     -- Wait for User Input & Update Battles
     local event, side, x, y = pullEventTimeout(1, "monitor_touch") -- Poll for events, timeout after one second
