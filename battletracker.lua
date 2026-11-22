@@ -80,7 +80,7 @@ while true do
         term.setBackgroundColour(colours.orange)
         end
         term.setCursorPos(5, index)
-        term.write(battles[k].side1.name + " VS " + battles[k].side2.name)
+        term.write(battles[k].side1.name .. " VS " .. battles[k].side2.name)
         index = index + 1
         if k == battle_id then
             term.setBackgroundColour(colours.black)
