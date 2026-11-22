@@ -32,7 +32,7 @@ assert(mon, "No monitor found! Attach an Advanced Monitor.")
 mon.setTextScale(1)
 local oldTerm = term.redirect(mon)
 
-local battle_data = {}
+local battles = {}
 battle_id = ""
 swap_sides = false
 
@@ -40,7 +40,7 @@ swap_sides = false
 local ok, err = pcall(function()
 while true do
     -- Update JSON data
-    battle_data = getBattleDataFromJSON(BATTLE_PATH)
+    battles = getBattleDataFromJSON(BATTLE_PATH)
 
     -- Update the monitor screen
     local size_w, size_h = term.getSize()
